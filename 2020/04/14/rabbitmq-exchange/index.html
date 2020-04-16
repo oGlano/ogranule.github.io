@@ -7,24 +7,25 @@
 <head>
   <meta charset="utf-8">
   
-  <title>redis数据丢失规避方案 | Granule的博客</title>
+  <title>rabbitmq交换机(exchange)类型 | Granule的博客</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
   
-    <meta name="keywords" content="blog" />
+    <meta name="keywords" content="rabbitmq exchange," />
   
 
-  <meta name="description" content="还没写完目前Redis持久化的方式有两种： RDB 和 AOF RDB &#x3D; 通过配置持久化策略实现 AOF &#x3D; 通过日志文件进行数据的恢复 配置master&amp;slave">
+  <meta name="description" content="TODO  后序补上代码实例1.fanout exchange(扇形交换机)生产者将消息发送至交换机(exchange),交换机再将消息各自分发独立的一份消息至绑定的队列中 再者便可创建消费者处理队列中的消息 (如果交换机未绑定队列,那么这时候添加到交换机内的消息会丢失.交换机不具备储存消息的功能,消息只会存在于队列中) 2.direct exchange(路由模式)生产者将消息发送至交换机,并指">
 <meta property="og:type" content="article">
-<meta property="og:title" content="redis数据丢失规避方案">
-<meta property="og:url" content="http://granule20.xyz/2020/04/11/redis-data-recover/index.html">
+<meta property="og:title" content="rabbitmq交换机(exchange)类型">
+<meta property="og:url" content="http://granule20.xyz/2020/04/14/rabbitmq-exchange/index.html">
 <meta property="og:site_name" content="Granule的博客">
-<meta property="og:description" content="还没写完目前Redis持久化的方式有两种： RDB 和 AOF RDB &#x3D; 通过配置持久化策略实现 AOF &#x3D; 通过日志文件进行数据的恢复 配置master&amp;slave">
+<meta property="og:description" content="TODO  后序补上代码实例1.fanout exchange(扇形交换机)生产者将消息发送至交换机(exchange),交换机再将消息各自分发独立的一份消息至绑定的队列中 再者便可创建消费者处理队列中的消息 (如果交换机未绑定队列,那么这时候添加到交换机内的消息会丢失.交换机不具备储存消息的功能,消息只会存在于队列中) 2.direct exchange(路由模式)生产者将消息发送至交换机,并指">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2020-04-11T09:49:52.000Z">
-<meta property="article:modified_time" content="2020-04-16T09:32:01.892Z">
+<meta property="article:published_time" content="2020-04-14T13:30:46.000Z">
+<meta property="article:modified_time" content="2020-04-14T14:05:53.119Z">
 <meta property="article:author" content="Granule">
+<meta property="article:tag" content="rabbitmq exchange">
 <meta name="twitter:card" content="summary">
 
   
@@ -197,20 +198,20 @@ ga('send', 'pageview');
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#还没写完"><span class="toc-text">还没写完</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#TODO-后序补上代码实例"><span class="toc-text">TODO  后序补上代码实例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-fanout-exchange-扇形交换机"><span class="toc-text">1.fanout exchange(扇形交换机)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-direct-exchange-路由模式"><span class="toc-text">2.direct exchange(路由模式)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-topic-exchange-话题模式"><span class="toc-text">3.topic exchange(话题模式)</span></a></li></ol></li></ol>
   </div>
 
 
 
 <div class="content content-post CENTER">
-   <article id="post-redis-data-recover" class="article article-type-post" itemprop="blogPost">
+   <article id="post-rabbitmq-exchange" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">redis数据丢失规避方案</h1>
+    <h1 class="post-title">rabbitmq交换机(exchange)类型</h1>
 
     <div class="article-meta">
       <span>
         <i class="icon-calendar"></i>
-        <span>2020.04.11</span>
+        <span>2020.04.14</span>
       </span>
 
       
@@ -238,10 +239,13 @@ ga('send', 'pageview');
 
   <div class="article-content">
     
-      <h3 id="还没写完"><a href="#还没写完" class="headerlink" title="还没写完"></a>还没写完</h3><p>目前Redis持久化的方式有两种： RDB 和 AOF</p>
-<p>RDB = 通过配置持久化策略实现</p>
-<p>AOF = 通过日志文件进行数据的恢复</p>
-<p>配置master&amp;slave</p>
+      <h2 id="TODO-后序补上代码实例"><a href="#TODO-后序补上代码实例" class="headerlink" title="TODO  后序补上代码实例"></a>TODO  后序补上代码实例</h2><h3 id="1-fanout-exchange-扇形交换机"><a href="#1-fanout-exchange-扇形交换机" class="headerlink" title="1.fanout exchange(扇形交换机)"></a>1.fanout exchange(扇形交换机)</h3><p>生产者将消息发送至交换机(exchange),交换机再将消息<code>各自分发独立的一份消息</code>至绑定的队列中</p>
+<p>再者便可创建消费者处理队列中的消息</p>
+<p>(如果交换机未绑定队列,那么这时候添加到交换机内的消息会丢失.交换机不具备储存消息的功能,消息只会存在于队列中)</p>
+<h3 id="2-direct-exchange-路由模式"><a href="#2-direct-exchange-路由模式" class="headerlink" title="2.direct exchange(路由模式)"></a>2.direct exchange(路由模式)</h3><p>生产者将消息发送至交换机,并指定消息的key(一般如error,warning,info等,可作为日志使用)</p>
+<p>队列绑定交换机,消费指定key(可多个)的消息</p>
+<h3 id="3-topic-exchange-话题模式"><a href="#3-topic-exchange-话题模式" class="headerlink" title="3.topic exchange(话题模式)"></a>3.topic exchange(话题模式)</h3><p>这里举一个官方的例子</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">A:china.news</span><br><span class="line">B:china.weather</span><br><span class="line">C:jp.news</span><br><span class="line">D:jp.weather</span><br><span class="line"></span><br><span class="line">AB可以被分发至china的exchange内</span><br><span class="line">AC可以被分发至news的exchange内</span><br><span class="line">BD可以被分发至weather的exchange内</span><br><span class="line">CD可以被分发至jp的exchange内</span><br><span class="line"></span><br><span class="line">即一条消息可以被分发至若干个交换机,再由交换机绑定的queue进行消费</span><br></pre></td></tr></table></figure>
 
     
   </div>
@@ -279,10 +283,10 @@ ga('send', 'pageview');
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2020/04/10/mysql-index/">
+    <a class="show pull-left" href="/2020/04/14/traversal-binary-tree/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="show pull-right" href="/2020/04/14/traversal-binary-tree/">
+    <a class="show pull-right" href="/2020/04/16/quick-sort/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
