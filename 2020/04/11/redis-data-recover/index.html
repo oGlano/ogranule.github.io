@@ -7,7 +7,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>redis数据丢失规避方案 | Granule的博客</title>
+  <title>redis持久化方法 | Granule的博客</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -15,15 +15,15 @@
     <meta name="keywords" content="blog" />
   
 
-  <meta name="description" content="还没写完目前Redis持久化的方式有两种： RDB 和 AOF RDB &#x3D; 通过配置持久化策略实现 AOF &#x3D; 通过日志文件进行数据的恢复 配置master&amp;slave">
+  <meta name="description" content="目前Redis持久化的方式有两种： RDB 和 AOF RDB持久化通过配置持久化策略实现 123456789101112# 在几秒内改动了多少数据就触发持久化# 想禁用的话不设置save即可save 900 1   # 参数的设置具体为: 如果每900秒有1个键进行了改动则保存一次数据save 300 10save 60 10000# 备份进程出错 主进程停止写入操作stop-writes-on">
 <meta property="og:type" content="article">
-<meta property="og:title" content="redis数据丢失规避方案">
+<meta property="og:title" content="redis持久化方法">
 <meta property="og:url" content="http://granule20.xyz/2020/04/11/redis-data-recover/index.html">
 <meta property="og:site_name" content="Granule的博客">
-<meta property="og:description" content="还没写完目前Redis持久化的方式有两种： RDB 和 AOF RDB &#x3D; 通过配置持久化策略实现 AOF &#x3D; 通过日志文件进行数据的恢复 配置master&amp;slave">
+<meta property="og:description" content="目前Redis持久化的方式有两种： RDB 和 AOF RDB持久化通过配置持久化策略实现 123456789101112# 在几秒内改动了多少数据就触发持久化# 想禁用的话不设置save即可save 900 1   # 参数的设置具体为: 如果每900秒有1个键进行了改动则保存一次数据save 300 10save 60 10000# 备份进程出错 主进程停止写入操作stop-writes-on">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2020-04-11T09:49:52.000Z">
-<meta property="article:modified_time" content="2020-04-16T09:32:01.892Z">
+<meta property="article:modified_time" content="2020-05-10T12:54:00.045Z">
 <meta property="article:author" content="Granule">
 <meta name="twitter:card" content="summary">
 
@@ -197,7 +197,7 @@ ga('send', 'pageview');
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#还没写完"><span class="toc-text">还没写完</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#RDB持久化"><span class="toc-text">RDB持久化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#AOF-append-only-file"><span class="toc-text">AOF (append only file)</span></a></li></ol>
   </div>
 
 
@@ -205,7 +205,7 @@ ga('send', 'pageview');
 <div class="content content-post CENTER">
    <article id="post-redis-data-recover" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">redis数据丢失规避方案</h1>
+    <h1 class="post-title">redis持久化方法</h1>
 
     <div class="article-meta">
       <span>
@@ -238,10 +238,30 @@ ga('send', 'pageview');
 
   <div class="article-content">
     
-      <h3 id="还没写完"><a href="#还没写完" class="headerlink" title="还没写完"></a>还没写完</h3><p>目前Redis持久化的方式有两种： RDB 和 AOF</p>
-<p>RDB = 通过配置持久化策略实现</p>
-<p>AOF = 通过日志文件进行数据的恢复</p>
-<p>配置master&amp;slave</p>
+      <p>目前Redis持久化的方式有两种： <strong>RDB</strong> 和 <strong>AOF</strong></p>
+<h3 id="RDB持久化"><a href="#RDB持久化" class="headerlink" title="RDB持久化"></a>RDB持久化</h3><p>通过配置持久化策略实现</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># 在几秒内改动了多少数据就触发持久化</span><br><span class="line"># 想禁用的话不设置save即可</span><br><span class="line">save 900 1   # 参数的设置具体为: 如果每900秒有1个键进行了改动则保存一次数据</span><br><span class="line">save 300 10</span><br><span class="line">save 60 10000</span><br><span class="line"></span><br><span class="line"># 备份进程出错 主进程停止写入操作</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 是否压缩rdb文件 </span><br><span class="line"># 其实就相当于说是要牺牲CPU还是牺牲硬盘空间,大多数情况下都是后者,因此默认配置NO就可以了 </span><br><span class="line">rdbcompression no</span><br></pre></td></tr></table></figure>
+
+<p>也可以通过手动执行命令 <strong>save</strong>/<strong>bgsave</strong> 实现持久化.</p>
+<p>每次执行会重新生成一个快照文件(dump.rdb).</p>
+<p>save是同步执行. bgsave是异步执行</p>
+<hr>
+<h3 id="AOF-append-only-file"><a href="#AOF-append-only-file" class="headerlink" title="AOF (append only file)"></a>AOF (append only file)</h3><p>通过日志文件进行数据的恢复</p>
+<p>其实这个方法的话,和mysql的二进制文件(binlog)去恢复丢失数据有点类似</p>
+<p>都是将我们对redis的每一项操作写入到日志文件中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 修改配置文件来打开aof功能：</span><br><span class="line">appendonly yes</span><br><span class="line"></span><br><span class="line"># 该参数的配置有三种选择</span><br><span class="line"># always   每次有新命令追加到aof文件时就执行一个持久化，比较慢但是安全</span><br><span class="line"># everysec 每秒执行一次持久化,相当于在故障的时候只会丢失1s的数据</span><br><span class="line"># no       不进行持久化</span><br><span class="line">appendfsync [param:always&#x2F;everysec&#x2F;no]</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
 
     
   </div>
