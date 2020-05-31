@@ -7,7 +7,7 @@
 <head>
   <meta charset="utf-8">
   
-  <title>门面 | Granule的博客</title>
+  <title>Elastic search基础 | Granule的博客</title>
 
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
@@ -15,20 +15,19 @@
     <meta name="keywords" content="blog" />
   
 
-  <meta name="description" content="概述门面设计模式主要解决的是当实际业务中需要去调用多个子系统时 简化这个调用过程,使得操作者更加快捷的去对子系统进行一些操作 实例老样子我们还是从一个实际的例子开始入手 出来混久了,总免不了出去下馆子 那么店里又是如何进行一次业务的流转的呢 我将餐饮店里,一个顾客从进店到出店,需要进行的操作都陈列出来.如下图 有些术语不是很专业. 能看懂就行哈  餐饮店的业务流程顾客进店 -&gt; 在前台下单">
+  <meta name="description" content="何为elastic search基于Lucene(可方便进行倒排索引的库)进行封装而成的搜索引擎. 将对外的操作都封装成了restful的api. 仅需通过http请求即可进行操作 支持分布式的部署,这也解决了海量数据的业务场景 相关名词作为搜索引擎,elastic search(下称es)对一些名词的释义上与正常的数据库有着一定的出入 如果是第一次使用的话也难免出现混淆两者的情况,因此我们第一步">
 <meta property="og:type" content="article">
-<meta property="og:title" content="门面">
-<meta property="og:url" content="http://granule20.xyz/2020/05/24/facade/index.html">
+<meta property="og:title" content="Elastic search基础">
+<meta property="og:url" content="http://granule20.xyz/2020/05/31/elastic-search-note/index.html">
 <meta property="og:site_name" content="Granule的博客">
-<meta property="og:description" content="概述门面设计模式主要解决的是当实际业务中需要去调用多个子系统时 简化这个调用过程,使得操作者更加快捷的去对子系统进行一些操作 实例老样子我们还是从一个实际的例子开始入手 出来混久了,总免不了出去下馆子 那么店里又是如何进行一次业务的流转的呢 我将餐饮店里,一个顾客从进店到出店,需要进行的操作都陈列出来.如下图 有些术语不是很专业. 能看懂就行哈  餐饮店的业务流程顾客进店 -&gt; 在前台下单">
+<meta property="og:description" content="何为elastic search基于Lucene(可方便进行倒排索引的库)进行封装而成的搜索引擎. 将对外的操作都封装成了restful的api. 仅需通过http请求即可进行操作 支持分布式的部署,这也解决了海量数据的业务场景 相关名词作为搜索引擎,elastic search(下称es)对一些名词的释义上与正常的数据库有着一定的出入 如果是第一次使用的话也难免出现混淆两者的情况,因此我们第一步">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="http://granule20.xyz/images/facade-1.jpg">
-<meta property="og:image" content="http://granule20.xyz/images/facade-2.jpg">
-<meta property="article:published_time" content="2020-05-24T07:34:38.000Z">
-<meta property="article:modified_time" content="2020-05-25T14:51:00.318Z">
+<meta property="og:image" content="http://granule20.xyz/images/es-cut.png">
+<meta property="article:published_time" content="2020-05-31T01:57:59.000Z">
+<meta property="article:modified_time" content="2020-05-31T03:07:14.461Z">
 <meta property="article:author" content="Granule">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://granule20.xyz/images/facade-1.jpg">
+<meta name="twitter:image" content="http://granule20.xyz/images/es-cut.png">
 
   
 
@@ -200,20 +199,20 @@ ga('send', 'pageview');
 
   <div id="toc" class="toc-article">
     <strong class="toc-title">文章目录</strong>
-    <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#概述"><span class="toc-text">概述</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#实例"><span class="toc-text">实例</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#餐饮店的业务流程"><span class="toc-text">餐饮店的业务流程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#餐饮店の进化"><span class="toc-text">餐饮店の进化</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#对于开发者"><span class="toc-text">对于开发者</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#门面设计模式"><span class="toc-text">门面设计模式</span></a></li></ol>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#何为elastic-search"><span class="toc-text">何为elastic search</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#相关名词"><span class="toc-text">相关名词</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ELK系统"><span class="toc-text">ELK系统</span></a></li></ol></li></ol>
   </div>
 
 
 
 <div class="content content-post CENTER">
-   <article id="post-facade" class="article article-type-post" itemprop="blogPost">
+   <article id="post-elastic-search-note" class="article article-type-post" itemprop="blogPost">
   <header class="article-header">
-    <h1 class="post-title">门面</h1>
+    <h1 class="post-title">Elastic search基础</h1>
 
     <div class="article-meta">
       <span>
         <i class="icon-calendar"></i>
-        <span>2020.05.24</span>
+        <span>2020.05.31</span>
       </span>
 
       
@@ -241,42 +240,55 @@ ga('send', 'pageview');
 
   <div class="article-content">
     
-      <h4 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h4><p>门面设计模式主要解决的是当实际业务中需要去调用多个子系统时</p>
-<p><strong>简化</strong>这个调用过程,使得操作者更加快捷的去对子系统进行一些操作</p>
-<h4 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h4><p>老样子我们还是从一个实际的例子开始入手</p>
-<p>出来混久了,总免不了出去下馆子</p>
-<p>那么店里又是如何进行一次业务的流转的呢</p>
-<p>我将餐饮店里,一个顾客从进店到出店,需要进行的操作都陈列出来.如下图</p>
-<p>有些术语不是很专业. 能看懂就行哈</p>
-<p><img src="/images/facade-1.jpg" alt="餐饮店业务"></p>
-<h5 id="餐饮店的业务流程"><a href="#餐饮店的业务流程" class="headerlink" title="餐饮店的业务流程"></a>餐饮店的业务流程</h5><p>顾客进店 -&gt; 在前台下单 -&gt; 厨房收到订单开始做菜 -&gt; 服务员上菜 -&gt; 顾客付钱 -&gt; 服务员擦桌子</p>
-<p>这样就完成了一次业务的流转</p>
-<h5 id="餐饮店の进化"><a href="#餐饮店の进化" class="headerlink" title="餐饮店の进化"></a>餐饮店の进化</h5><p>那么在我们将整个餐饮店的业务都做成一个系统时候又会是怎样呢</p>
-<p>首先得有一个客户端吧, 作为<strong>调用者</strong></p>
-<p>然后呢,由客户端依次去调用各个<strong>子系统</strong>,执行各自的职能</p>
-<p>点单系统,厨房,收银台,服务员</p>
-<p>按照上述的业务流程,依次执行对应的职能</p>
-<h5 id="对于开发者"><a href="#对于开发者" class="headerlink" title="对于开发者"></a>对于开发者</h5><p>那么对任何一个调用者(开发人员)来说</p>
-<p>想要去调用这些子系统,就必须去知道,这个子系统实现了什么方法</p>
-<p>然后在具体的业务场景,依次去实例化各个子系统再进行调用</p>
-<p>这也加大了开发的成本</p>
-<p>而门面这一设计模式也很好的解决了这一问题</p>
-<h4 id="门面设计模式"><a href="#门面设计模式" class="headerlink" title="门面设计模式"></a>门面设计模式</h4><p>首先<strong>调用者</strong>通过实例化<strong>门面类</strong></p>
-<p>再由门面类去进行一系列的操作</p>
-<p>而调用者所使用的一些方法,<strong>均不是</strong>门面类内进行实现的</p>
-<p>门面类通过传参/内部参数定义,了解到操作者当前需要进行操作的子系统</p>
-<p>对子系统进行<strong>实例化后再调用</strong>子系统内指定的方法</p>
-<p>那么我们根据门面模式对上述餐饮店业务进行改造会如何呢</p>
-<p><img src="/images/facade-2.jpg" alt="餐饮店业务"></p>
-<p>是的,你没看错</p>
-<p>我们仅仅加入了一层叫<strong>门面</strong>的玩意</p>
-<p>这样就解决了调用者还需要去关心具体子系统的糟心事</p>
-<p>调用者只需要实例化门面类</p>
-<p>然后由门面类统一去实例化各个系统,再调用对应的方法</p>
-<p>这样便能轻松的在每一个业务阶段去调用子系统实现的方法</p>
-<p>####总结<br>Facade(门面),就是访问各个子系统的快捷方法</p>
-<p>当我们的系统存在复数个业务模块时</p>
-<p>facade能帮助我们在任何情景快速的调起对应子系统的方法</p>
+      <h3 id="何为elastic-search"><a href="#何为elastic-search" class="headerlink" title="何为elastic search"></a>何为elastic search</h3><p>基于<strong>Lucene</strong>(可方便进行倒排索引的库)进行封装而成的搜索引擎.</p>
+<p>将对外的操作都封装成了restful的api. <strong>仅需</strong>通过http请求即可进行操作</p>
+<p><strong>支持分布式的部署</strong>,这也解决了海量数据的业务场景</p>
+<h3 id="相关名词"><a href="#相关名词" class="headerlink" title="相关名词"></a>相关名词</h3><p>作为搜索引擎,<strong>elastic search</strong>(下称es)对一些名词的释义上与正常的数据库有着一定的出入</p>
+<p>如果是第一次使用的话也难免出现混淆两者的情况,因此我们第一步还是要先弄懂这些专有名词</p>
+<p>*也为了方便理解,下面将尽可能和mysql中一些已有的名词进行对比</p>
+<p>####索引<br>在mysql中,索引所充当的角色大多情况下都是类似于<strong>书签</strong>.</p>
+<p>而在es中,索引则包含了一些数据.实际上更接近于mysql的<strong>数据库</strong></p>
+<p>索引在es中是一个存放数据数据的地方</p>
+<p>####类型<br>es中的类型则相当于mysql中的<strong>表</strong></p>
+<p>类型定义了每个数据的数据类型.诸如.integer,text,keyword等</p>
+<p>而类型的定义,在es中是通过mapping去进行的                       </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&#39;properties&#39; &#x3D;&gt; [</span><br><span class="line">    &#39;name&#39;      &#x3D;&gt; [</span><br><span class="line">        &#39;type&#39; &#x3D;&gt; &#39;keyword&#39;,</span><br><span class="line">    ],</span><br><span class="line">    &#39;user_id&#39;      &#x3D;&gt; [</span><br><span class="line">        &#39;type&#39; &#x3D;&gt; &#39;integer&#39;,</span><br><span class="line">    ],</span><br><span class="line">    &#39;sex&#39;      &#x3D;&gt; [</span><br><span class="line">        &#39;type&#39; &#x3D;&gt; &#39;integer&#39;,</span><br><span class="line">    ],</span><br><span class="line">    &#39;爱好&#39;  &#x3D;&gt; [</span><br><span class="line">        &#39;type&#39; &#x3D;&gt; &#39;text&#39;,</span><br><span class="line">    ],</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
+
+<p>一般mapping结构会如上所示</p>
+<p>这边也做个拓展的说明. </p>
+<p><strong>text</strong>和<strong>keyword</strong>的区别也体现了搜索引擎的一个重要功能:分词</p>
+<p>对于text类型的字段,在存入es的时候,会先进行分词再根据结果建立反向(倒排)索引</p>
+<p>对于keyword类型的字段,则是不进行分词,直接根据字符串的内容建立反向(倒排)索引</p>
+<p>分词在搜索引擎又是一个重大的工程,有机会的话我会再另起一篇文章去讲述一下</p>
+<p>####文档<br>同样和mysql做比较.文档这里是指mysql表中的<strong>一条记录</strong>,这个还是比较好记的</p>
+<p>###关于es的分布式存储<br>谈到分布式就有一个避不开的问题:高可用</p>
+<p>而es中又是如何实现的呢,实际上也是通过冗余的方式</p>
+<p>首先es会对数据进行切分,且分片会保存多个副本在不同的节点上</p>
+<p>具体可以参考一下下图</p>
+<p><img src="/images/es-cut.png" alt="es分片储存"></p>
+<p>也正如上面提到的, es是采用了master-slave架构</p>
+<p>在es中,所有的节点都是对等的. 节点会<strong>通过一些规则</strong>自己选取集群的master</p>
+<p>而master则会负责集群状态信息的改变,并同步给其他节点</p>
+<p>实际上,我们创建索引的时候,也是将请求发到了master</p>
+<p>master建立完索引后.再将集群状态同步到slave.  mapping的建立也类似</p>
+<p>这里抛出一个问题,如果我们所有的请求都通过这样的方式,将master作为跳板再到slave,那么在做数据的写入的时候效率又会如何呢?</p>
+<p>显而易见的,所有的请求都积压在master,效率会变得十分低下</p>
+<p>但自然es也是考虑了这一点. 数据的写入有自己的routing规则,可以直接route到集群中的任意节点</p>
+<p>因此数据的写入压力是分散到整个集群的</p>
+<h4 id="ELK系统"><a href="#ELK系统" class="headerlink" title="ELK系统"></a>ELK系统</h4><p>首先做下单词的拆分,这也便于我们便于理解</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">E &#x3D; elastic search</span><br><span class="line">L &#x3D; logstash</span><br><span class="line">K &#x3D; kibana</span><br></pre></td></tr></table></figure>
+
+<p>日志分析系统整个业务流程大致可视为:</p>
+<p>logstash采集日志 -&gt; 储存到es -&gt; 运维人员通过kibana进行日志监控</p>
+<p>kibana提供了可视化的操作页面,通过一些图表数据也可以清晰的知道系统的运行情况</p>
+<p>同时如果再接入一些模块,也可以实现实时报警等功能.</p>
+<p>###补充<br>这里主要还是对文章中提到的一些名词做一些补充说明</p>
+<p>###倒排索引<br>我们正常索引,大多情况都是做一个key-value对,key近似于一个外部的标识</p>
+<p>比如文章的标题/作者(key)和文章的内容(value)</p>
+<p>而倒排索引则是将文章的内容直接作为key</p>
+<p>当然直接将抽取的内容作为key,全部内容作为value肯定是不合理的,因此也有一些优化方案</p>
+<p>首先是索引的压缩,可以将value用文章的id作为替代,同样能检索到指定的文章内容</p>
+<p>key的筛选则涉及到了分词和过滤,这里也不做深入的阐述,有兴趣的可以了解一下相关的文章</p>
 <p>end</p>
 
     
@@ -315,10 +327,10 @@ ga('send', 'pageview');
 
    
   <div class="box-prev-next clearfix">
-    <a class="show pull-left" href="/2020/05/24/quick-sort/">
+    <a class="show pull-left" href="/2020/05/24/facade/">
         <i class="icon icon-angle-left"></i>
     </a>
-    <a class="show pull-right" href="/2020/05/31/elastic-search-note/">
+    <a class="hide pull-right" href="/">
         <i class="icon icon-angle-right"></i>
     </a>
   </div>
